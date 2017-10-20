@@ -24,9 +24,19 @@ class UsersIndexTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "index as non-admin" do
+  test "index as non-admin" do # added tests for unactivated users
     log_in_as(@non_admin)
     get users_path
     assert_select 'a', text: 'delete', count: 0
+    assert_difference 'User.count', 1 do
+      post signup_path, params: { user: { name: "Example User",
+                                          email: "user@example.com",
+                                          password: "password",
+                                          password_confirmation: "password"} }
+      assert_select 'a', text: "Example User", count: 0
+      # not sure if this bit will break or not
+      get user_path(User.last.id)
+      assert_redirected_to root_url
+    end
   end
 end
